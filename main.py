@@ -7,7 +7,7 @@ import httpx
 
 
 app = FastAPI()
-http_client = httpx.AsyncClient(verify=False)
+http_client = httpx.AsyncClient(verify=False, timeout=30)
 token_dict = dict()
 
 
@@ -63,14 +63,14 @@ class GenerateRequestData(BaseModel):
     max_tokens: int = 512
 
 
-async def generate(prompt: str, model: str, access_token: str, timeout: int = 30, max_tokens: int = 512):
+async def generate(prompt: str, model: str, access_token: str, max_tokens: int = 512):
     assert model in available_models
     chat_item = ChatItem(role='user', content=prompt)
     messages = [chat_item]
     request_data = RequestData(model=model, messages=messages, max_tokens=max_tokens)
     authorization = f'Bearer {access_token}'
     headers = {'Authorization': authorization}
-    resp = await http_client.post(api_url, content=request_data.json(), headers=headers, timeout=timeout)
+    resp = await http_client.post(api_url, content=request_data.json(), headers=headers)
 
     return json.loads(resp.text)
 
@@ -83,7 +83,7 @@ async def root():
 @app.post("/generate")
 async def generate(request_data: GenerateRequestData):
     access_token = await get_access_token(30, token_dict)
-    resp = await generate(request_data.prompt, model_pro, access_token, timeout=30, max_tokens=request_data.max_tokens)
+    resp = await generate(request_data.prompt, model_pro, access_token, max_tokens=request_data.max_tokens)
 
     return resp["choices"][0]['message']['content']
 
