@@ -63,7 +63,7 @@ class GenerateRequestData(BaseModel):
     max_tokens: int = 512
 
 
-async def generate(prompt: str, model: str, access_token: str, max_tokens: int = 512):
+async def generate_routine(prompt: str, model: str, access_token: str, max_tokens: int = 512):
     assert model in available_models
     chat_item = ChatItem(role='user', content=prompt)
     messages = [chat_item]
@@ -83,7 +83,7 @@ async def root():
 @app.post("/generate")
 async def generate(request_data: GenerateRequestData):
     access_token = await get_access_token(30, token_dict)
-    resp = await generate(request_data.prompt, model_pro, access_token, max_tokens=request_data.max_tokens)
+    resp = await generate_routine(request_data.prompt, model_pro, access_token, max_tokens=request_data.max_tokens)
 
     return resp["choices"][0]['message']['content']
 
